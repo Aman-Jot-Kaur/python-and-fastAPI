@@ -5,6 +5,7 @@ class Todo(BaseModel):
     Description: str
     _id: str | None = None
    
-
+class TodoResponse(Todo):
+    status: int
     
     
