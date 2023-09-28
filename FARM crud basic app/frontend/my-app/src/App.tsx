@@ -4,6 +4,7 @@ import axios from 'axios';
 type toDoType = {
   Title: string;
   Description: string;
+  _id: string;
 };
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
     try {
       const res = await axios.get('http://127.0.0.1:8000/api/todo');
       setTodo(res.data);
+      console.log(todo)
     } catch (error) {
       setError('An error occurred while fetching data.');
     }
@@ -31,20 +33,20 @@ const App = () => {
 
   const onsubmithandle = async (e: React.FormEvent) => {
     e.preventDefault();
-
+ let new_id=""
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/todo', {
         Title: title,
         Description: desc,
       });
-
-      console.log(response.data);
-
+console.log(response)
+     new_id=response.data._id;
       setTitle('');
       setDesc('');
       const newtodo: toDoType = {
         Title: title,
         Description: desc,
+        _id: new_id
       };
 
       debouncedSetTodo(newtodo); // Debounce the setTodo call to improve performance
@@ -53,17 +55,20 @@ const App = () => {
       setError('An error occurred while adding a new todo.');
     }
   };
-const handleDelete = async (title: string) => {
-  try{
-  const response = await axios.delete(`http://127.0.0.1:8000/api/todo/${title}`)
-  console.log(response.data)
-  setTodo(todo.filter((item) => item.Title !== title));
-  }
-  catch(error){
-    console.log(error)
-  }
-
-}
+  const handleDelete = async (_id: string) => {
+    try {
+      const response = await axios.delete(`http://127.0.0.1:8000/api/todo/${_id}`);
+      const deletedId = response.data._id; // Access the _id from the response
+      console.log(deletedId);
+  
+      // Remove the item from the todo list based on its _id
+      setTodo(todo.filter((item) => item._id !== deletedId));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
+  
 
   return (
     <div className='App'>
@@ -100,14 +105,15 @@ const handleDelete = async (title: string) => {
           aria-label='description'
         />
         <input type='submit' value='Submit' />
-        <div >
+        <div style={{display:"flex", flexDirection:"column", gap:"10px"}} >
         {error && <p>{error}</p>}
         {/* Map over the todo array and render each todo item */}
         {todo.map((item: toDoType, index) => (
-          <div  key={index}>
+          <div style={{ flex: "0 1 auto", border:"2px solid black", padding:"3px"}}  key={item._id}>
+            <button style={{color:"white", backgroundColor:"red", flex:"end"}} onClick={()=>handleDelete(item._id)}>X</button>
             <h4>{item.Title}</h4>
-            <p>{item.Description}</p>
-            <button style={{color:"white", backgroundColor:"red"}} onClick={(e)=>handleDelete(item.Title)}>X</button>
+            <p>{item._id}</p>
+            
           </div>
         ))}
       </div>

@@ -35,46 +35,56 @@ async def get_todo():
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 
-@app.get("/api/todo/{title}",response_model=Todo)
-async def get_todo_by_id(title:str):
+@app.get("/api/todo/{_id}")
+async def get_todo_by_id(_id:str):
     try:
-        response=await fetch_one_todo(title)
+        
+        response=await fetch_one_todo(_id)
+   
         if response:
+                    response["_id"] = str(response["_id"])
                     return response
-        raise HTTPException(404, f"there is no to do item with {title} title")
+        raise HTTPException(status_code=404, detail="item doesnot exist")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@app.post("/api/todo", response_model=Todo)
-async def post_todo(todo:Todo):
- try:
-     response= await create_todo(todo.dict())
-     if response:
-        return response
-     raise HTTPException(400,"something went wrong bad request")
- except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
-@app.put("/api/todo/{title}",response_model=Todo)
-async def modify_todo(title: str, desc: str):
- try:
-     response= await update_todo(title, desc)
-     if response:
-         return response
-     raise HTTPException(404, f"there is no to do item with {title} title")
- except Exception as e:
+@app.post("/api/todo")
+async def post_todo(todo: Todo)  :
+    try:
+        response = await create_todo(todo.dict())
+        if response:
+            print("post respone in post_todo")
+            print(response)
+            return response  # Include the _id in the response
+           
+        raise HTTPException(400, "Something went wrong bad request")
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-
-    
-@app.delete("/api/todo/{title}")
-async def delete_todo(title:str):
- try:
-    response= await remove_todo(title)
-    if response:
-        return "successfully delete the required item"
-    raise HTTPException(404, f"there is no to do item with {title} title")
- except Exception as e:
+@app.put("/api/todo/{_id}")
+async def modify_todo(_id: str, todo: Todo):
+    try:
+        response = await update_todo(_id, todo)
+        if response:
+            return response
+        raise HTTPException(404, f"There is no to-do item")
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+
+
+
+@app.delete("/api/todo/{_id}")
+async def delete_todo(_id: str):
+    try:
+       
+        response = await remove_todo(_id)
+        if response:
+            return response
+        raise HTTPException(404, f"There is no to-do item with _id {_id}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error to delete")
+
 
